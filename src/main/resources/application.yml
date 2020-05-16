@@ -1,0 +1,8 @@
+#tomcat
+server:
+  port: 8080
+
+#socket
+socketserver:
+  host: localhost
+  port: 28888
