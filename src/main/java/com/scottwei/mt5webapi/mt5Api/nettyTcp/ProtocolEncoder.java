@@ -44,8 +44,12 @@ public class ProtocolEncoder extends MessageToByteEncoder<Message> {
         String bodySize = String.format("%04X", body.length);
         String serialNumber = String.format("%04X", msg.getSerialNumber());
         String flag = String.format("%01X", msg.getFlag());
-        out.writeBytes((Constant.PREFIX + bodySize + serialNumber + flag).getBytes(StandardCharsets.UTF_8));
+        out.writeBytes((getPrefix(msg) + bodySize + serialNumber + flag).getBytes(StandardCharsets.UTF_8));
         out.writeBytes(body);
+    }
+
+    private final String getPrefix(Message msg) {
+        return "AUTH_START".equals(msg.getBody().substring(0,10)) ? Constant.PREFIX : "";
     }
 
 }
