@@ -14,10 +14,10 @@ import java.util.concurrent.ConcurrentMap;
  * @date 2019/8/1 11:03
  **/
 public class TimeoutTask implements TimerTask {
-    private final long invokeId;
+    private final int invokeId;
     private final ConcurrentMap<Integer, CompletableFuture<Map<String,String>>> invokeCache;
 
-    public TimeoutTask(long invokeId, ConcurrentMap<Integer, CompletableFuture<Map<String, String>>> invokeCache) {
+    public TimeoutTask(int invokeId, ConcurrentMap<Integer, CompletableFuture<Map<String, String>>> invokeCache) {
         this.invokeId = invokeId;
         this.invokeCache = invokeCache;
     }

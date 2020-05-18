@@ -43,10 +43,10 @@ public class ClientManager {
     }
 
     private static final ConcurrentMap<Integer, CompletableFuture<Map<String,String>>> invokeCache = new ConcurrentHashMap<>();
-    private static final HashedWheelTimer timeoutScanner = new HashedWheelTimer(new DefaultThreadFactory("mt5webapi.timeout.scanner",true), 50, TimeUnit.MILLISECONDS, 4096);
+    private static final HashedWheelTimer timeoutScanner = new HashedWheelTimer(new DefaultThreadFactory("mt5webapi.timeout.scanner",true), 100, TimeUnit.MILLISECONDS, 512);
     private static final AtomicInteger sequence = new AtomicInteger(0);
     private static final int maxSequence = 0x3FFF;
-    private static final long timeout = 3000;//invoke timeout
+    private static final long timeout = 5;//invoke timeout
     private Channel channel;
 
 
@@ -70,7 +70,7 @@ public class ClientManager {
             CompletableFuture<Map<String,String>> completableFuture = new CompletableFuture();
             invokeCache.put(invokeId, completableFuture);
             TimeoutTask timeoutTask = new TimeoutTask(invokeId, invokeCache);
-            timeoutScanner.newTimeout(timeoutTask, timeout, TimeUnit.NANOSECONDS);
+            timeoutScanner.newTimeout(timeoutTask, timeout, TimeUnit.SECONDS);
             return completableFuture;
         }else {
             throw new RemoteException("channel is unavailable");//不可发送
