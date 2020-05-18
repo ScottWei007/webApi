@@ -44,7 +44,7 @@ public class ClientManager {
 
     private static final ConcurrentMap<Integer, CompletableFuture<Map<String,String>>> invokeCache = new ConcurrentHashMap<>();
     private static final HashedWheelTimer timeoutScanner = new HashedWheelTimer(new DefaultThreadFactory("mt5webapi.timeout.scanner",true), 100, TimeUnit.MILLISECONDS, 512);
-    private static final AtomicInteger sequence = new AtomicInteger(0);
+    private static final AtomicInteger sequence = new AtomicInteger(1);
     private static final int maxSequence = 0x3FFF;
     private static final long timeout = 5;//invoke timeout
     private Channel channel;

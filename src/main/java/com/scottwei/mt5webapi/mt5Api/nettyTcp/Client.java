@@ -18,6 +18,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Scott Wei
@@ -27,30 +28,37 @@ import java.util.concurrent.ThreadFactory;
 public class Client {
     private final Logger logger = LoggerFactory.getLogger(Client.class);
 
-    private Bootstrap bootstrap;
+    public Bootstrap bootstrap;
     private final int workerThreads = Runtime.getRuntime().availableProcessors() << 1;
     private final int workerIoRatio = 50;
     private final ClientIdleStateTrigger clientIdleStateTrigger = new ClientIdleStateTrigger();
     private final ProtocolEncoder protocolEncoder = new ProtocolEncoder();
-    private final EventLoopGroup worker = initWorkerEventLoopGroup();
-    private final ClientHandler clientHandler = new ClientHandler(worker);
-
+    public final EventLoopGroup worker = initWorkerEventLoopGroup();
+    private final ClientHandler clientHandler = new ClientHandler(this);
     @Value("${socketserver.host}")
-    private String host;
+    public String host;
     @Value("${socketserver.port}")
-    private int port;
+    public int port;
+
+    public final ChannelFutureListener channelFutureListener = cf -> {
+        if (!cf.isSuccess()) {
+            logger.info("=============>tcp client start error.");
+            worker.schedule(() -> {
+                ChannelFuture cf1 = bootstrap.connect(new InetSocketAddress(host, port));
+                cf1.addListener(this.channelFutureListener);
+            }, 3, TimeUnit.SECONDS);
+        } else {
+            ClientManager.getInstance().setChannel(cf.channel());
+            logger.info("=============>tcp client start success.");
+        }
+    };
 
     //init 初始化方法
     @PostConstruct
     public void start(){
-        try {
-            bootstrap = initBootstrap();
-            ChannelFuture channelFuture = bootstrap.connect(new InetSocketAddress(host, port)).sync();
-            ClientManager.getInstance().setChannel(channelFuture.channel());
-            logger.info("=============>tcp client start.");
-        }catch (Exception e) {
-            logger.error("=============>tcp client error: " + e);
-        }
+        bootstrap = initBootstrap();
+        ChannelFuture channelFuture = bootstrap.connect(new InetSocketAddress(host, port));
+        channelFuture.addListener(channelFutureListener);
     }
 
     //destroy

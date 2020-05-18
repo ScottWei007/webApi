@@ -6,6 +6,8 @@ import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.InetSocketAddress;
+
 
 /**
  * @author Scott Wei
@@ -16,16 +18,16 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
 
     private static final Logger logger = LoggerFactory.getLogger(ClientHandler.class);
 
-    private final EventLoopGroup worker;
+    private final Client client;
 
-    public ClientHandler(EventLoopGroup worker) {
-        this.worker = worker;
+    public ClientHandler(Client client) {
+        this.client = client;
     }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if(msg instanceof Message) {
-            worker.execute(new MessageTask((Message) msg));
+            client.worker.execute(new MessageTask((Message) msg));
         }else {
             ReferenceCountUtil.release(msg);
         }
@@ -58,6 +60,15 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-
+        ctx.channel().close();
     }
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        logger.info("======== channel Inactive");
+        ctx.fireChannelInactive();
+        ChannelFuture channelFuture = client.bootstrap.connect(new InetSocketAddress(client.host, client.port));
+        channelFuture.addListener(client.channelFutureListener);
+    }
+
 }

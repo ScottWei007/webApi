@@ -1,6 +1,7 @@
 
 package com.scottwei.mt5webapi.mt5Api.nettyTcp;
 
+import com.scottwei.mt5webapi.common.Constant;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -43,7 +44,7 @@ public class ProtocolEncoder extends MessageToByteEncoder<Message> {
         String bodySize = String.format("%04X", body.length);
         String serialNumber = String.format("%04X", msg.getSerialNumber());
         String flag = String.format("%01X", msg.getFlag());
-        out.writeBytes((bodySize + serialNumber + flag).getBytes(StandardCharsets.UTF_8));
+        out.writeBytes((Constant.PREFIX + bodySize + serialNumber + flag).getBytes(StandardCharsets.UTF_8));
         out.writeBytes(body);
     }
 
